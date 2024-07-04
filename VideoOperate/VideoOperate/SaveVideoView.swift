@@ -26,6 +26,15 @@ struct SaveVideoView: View {
             
             Button {
                 
+                VideoTools.cutVideo(withFilePath: Bundle.main.path(forResource: "1999", ofType: "mp4")!, start: 30, end: 90) { success, filePath in
+                    
+                    if success {
+                        print("裁剪完成")
+                        mergeFilePath = filePath
+                        isNavigationActive = true
+                    }
+                    
+                }
 //                let objCInstance = MergeAVideo()
 //                objCInstance.mergeFilePath(Bundle.main.path(forResource: "99", ofType: "mp4")!, audioFilePath: Bundle.main.path(forResource: "1999", ofType: "mp4")!)
 //                objCInstance.megreVideoComplete { filePath, status in
@@ -39,16 +48,16 @@ struct SaveVideoView: View {
 //                objCInstanc
 //                saveVideoAlbum(videoURL: URL(filePath: Bundle.main.path(forResource: "1999", ofType: "mp4")!))
             } label: {
-                Text("保存视频")
+                Text("裁剪视频")
                     .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
             
-//            NavigationLink(destination:VideoPlayerView(filePath: mergeFilePath), isActive: $isNavigationActive, label: {
-//                EmptyView()
-//            })
+            NavigationLink(destination:VideoPlayerView(filePath: mergeFilePath), isActive: $isNavigationActive, label: {
+                EmptyView()
+            })
 
         }
         .padding()

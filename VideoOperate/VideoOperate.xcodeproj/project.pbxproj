@@ -53,6 +53,9 @@
 		01D787A82C2D240E00425154 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787A72C2D240E00425154 /* LoadingView.swift */; };
 		01D787AA2C2E475700425154 /* BrowsePhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787A92C2E475700425154 /* BrowsePhotosView.swift */; };
 		01D787AD2C2FA94C00425154 /* SaveFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787AC2C2FA94C00425154 /* SaveFileManager.swift */; };
+		01D787B02C34DAD300425154 /* CutLocalVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787AF2C34DAD300425154 /* CutLocalVideoView.swift */; };
+		01D787B22C34DAE800425154 /* CutPhotoVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787B12C34DAE800425154 /* CutPhotoVideoView.swift */; };
+		01D787B42C34DC2100425154 /* CutVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787B32C34DC2100425154 /* CutVideoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -243,6 +246,9 @@
 		01D787A72C2D240E00425154 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		01D787A92C2E475700425154 /* BrowsePhotosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowsePhotosView.swift; sourceTree = "<group>"; };
 		01D787AC2C2FA94C00425154 /* SaveFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveFileManager.swift; sourceTree = "<group>"; };
+		01D787AF2C34DAD300425154 /* CutLocalVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutLocalVideoView.swift; sourceTree = "<group>"; };
+		01D787B12C34DAE800425154 /* CutPhotoVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutPhotoVideoView.swift; sourceTree = "<group>"; };
+		01D787B32C34DC2100425154 /* CutVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutVideoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -555,6 +561,7 @@
 			isa = PBXGroup;
 			children = (
 				01D787AB2C2ECD1400425154 /* Data */,
+				01D787AE2C34DA8900425154 /* CutVideo */,
 				01D7879E2C2BA13500425154 /* VideoPhotos */,
 				01D7879D2C27B7BE00425154 /* MergeVideo */,
 				011B2CC72C19FCFB007EB450 /* lib */,
@@ -612,6 +619,16 @@
 				011B2CB42C17EC25007EB450 /* PhotoVideoLibrary.swift */,
 			);
 			path = Data;
+			sourceTree = "<group>";
+		};
+		01D787AE2C34DA8900425154 /* CutVideo */ = {
+			isa = PBXGroup;
+			children = (
+				01D787AF2C34DAD300425154 /* CutLocalVideoView.swift */,
+				01D787B12C34DAE800425154 /* CutPhotoVideoView.swift */,
+				01D787B32C34DC2100425154 /* CutVideoView.swift */,
+			);
+			path = CutVideo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -692,8 +709,10 @@
 				01D787AA2C2E475700425154 /* BrowsePhotosView.swift in Sources */,
 				01D787A62C2BBF8B00425154 /* PreviewPhotosView.swift in Sources */,
 				011B2CBB2C185EA6007EB450 /* MainView.swift in Sources */,
+				01D787B02C34DAD300425154 /* CutLocalVideoView.swift in Sources */,
 				01D787A22C2BB56A00425154 /* BrowseLocalVideoView.swift in Sources */,
 				01D7879A2C26CB7A00425154 /* LocalVideoLibrary.swift in Sources */,
+				01D787B42C34DC2100425154 /* CutVideoView.swift in Sources */,
 				01D787A02C2BB54E00425154 /* BrowseVideoView.swift in Sources */,
 				0140F9522C16BE5F009C2105 /* ContentView.swift in Sources */,
 				01D787982C247D0E00425154 /* VideoTools.m in Sources */,
@@ -703,6 +722,7 @@
 				01D787A82C2D240E00425154 /* LoadingView.swift in Sources */,
 				011B2CB72C17EEF8007EB450 /* MergePhotoVideoView.swift in Sources */,
 				01D787AD2C2FA94C00425154 /* SaveFileManager.swift in Sources */,
+				01D787B22C34DAE800425154 /* CutPhotoVideoView.swift in Sources */,
 				011B2DD62C23EF66007EB450 /* MergeAudioVideoView.swift in Sources */,
 				011B2CB92C17F7EB007EB450 /* MergeVideoItemRow.swift in Sources */,
 				01D7879C2C273D5400425154 /* MergeLocalVideoView.swift in Sources */,

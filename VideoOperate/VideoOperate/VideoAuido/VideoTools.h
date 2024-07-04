@@ -46,6 +46,8 @@ typedef NS_ENUM(NSUInteger, EnumVideoImageQuality) {
 + (NSArray <DecodeFrame *> *)decodeFramesWithVideoFilePath:(NSString *)path count:(int64_t)count;
 //直接获取视频的图片 每 总时间/count 的间隔取一张图片
 + (NSArray <UIImage *> *)imagesWithVideoFilePath:(NSString *)path count:(int64_t)count quality:(EnumVideoImageQuality)quality;
+//裁剪音视频
++ (void)cutVideoWithFilePath:(NSString *)path start:(int)start end:(int)end complete:(void(^)(BOOL success, NSString *outFilePath))complete;
 
 @end
 

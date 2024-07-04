@@ -122,19 +122,23 @@ struct MergePhotoVideoView: View {
             
         }
         .onAppear {
-            PhotoLibraryAccess.requestAuthorization { status in
-                authorizationStatus = status
+
+            if videoLibrary.photoVideos.count == 0 {
                 
-                if status == .authorized {
-                    self.videoLibrary.fetchVideos()
+                PhotoLibraryAccess.requestAuthorization { status in
+                    authorizationStatus = status
                     
-                    self.cancellabel = self.videoLibrary.$status
-                        .compactMap { $0 }
-                        .sink(receiveValue: { status in
-                            if status {
-                                self.initalizeData()
-                            }
-                        })
+                    if status == .authorized {
+                        self.videoLibrary.fetchVideos()
+                        
+                        self.cancellabel = self.videoLibrary.$status
+                            .compactMap { $0 }
+                            .sink(receiveValue: { status in
+                                if status {
+                                    self.initalizeData()
+                                }
+                            })
+                    }
                 }
             }
         }

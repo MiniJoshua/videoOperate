@@ -537,4 +537,202 @@
     return [imagesArray copy];
 }
 
++ (void)removeAllOutFile {
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
+    
+    NSArray *files = [fileManager contentsOfDirectoryAtPath:directiorPath error:NULL];
+    for(NSString *filePath in files) {
+        NSString *fullFilePath = [NSString stringWithFormat:@"%@/%@",directiorPath,filePath];
+        [fileManager removeItemAtPath:fullFilePath error:NULL];
+    }
+}
+
++ (NSString *)cutOutFilePtah {
+    
+    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL createStatus = [fileManager createDirectoryAtPath:directiorPath withIntermediateDirectories:YES attributes:NULL error:NULL];
+    if (!createStatus) {
+        NSLog(@"创建Cut的文件夹失败");
+        return @"";
+    }
+    
+    
+    NSDate *date = [NSDate date];
+    NSString *cutOutFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.mp4",date.timeIntervalSince1970]];
+    
+    return cutOutFilePath;
+}
+
++ (void)cutVideoWithFilePath:(NSString *)path start:(int)start end:(int)end complete:(void(^)(BOOL success, NSString *outFilePath))complete {
+    
+    [self removeAllOutFile];
+    
+    NSString *cutOutFilePath = [self cutOutFilePtah];
+    AVFormatContext *outFmtCtx = NULL;
+    
+    AVFormatContext *inFmtCtx = [self openInputFormatContextWithFilePath:path];
+    if (!inFmtCtx || inFmtCtx == NULL) {
+        return;
+    }
+    
+    int ret = avformat_alloc_output_context2(&outFmtCtx, NULL, NULL, [cutOutFilePath UTF8String]);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "output format context alloc failed:%s \n", av_err2str(ret));
+        goto fail;
+    }
+    
+    for (int i = 0; i < inFmtCtx -> nb_streams; i++) {
+        
+        AVStream *in_stream = inFmtCtx -> streams[i];
+        AVStream *out_stream = avformat_new_stream(outFmtCtx, NULL);
+        
+        if (out_stream == NULL) {
+            av_log(NULL, AV_LOG_ERROR, "new stream failed! \n");
+            goto fail;
+        }
+        
+        ret = avcodec_parameters_copy(out_stream -> codecpar, in_stream -> codecpar);
+        if (ret < 0) {
+            
+            av_log(NULL, AV_LOG_ERROR, "copy codec parameters failed!\n");
+            goto fail;
+        }
+        
+        out_stream -> codecpar -> codec_tag = 0;
+        
+        //设置输出流音频帧的大小
+        if (in_stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            const struct AVCodec *codec = avcodec_find_decoder(in_stream->codecpar->codec_id);
+            if (!codec) {
+                av_log(NULL, AV_LOG_ERROR, "can not find audio code!\n");
+                goto fail;
+            }
+            AVCodecContext *codecCtx = avcodec_alloc_context3(codec);
+            if (!codecCtx) {
+                av_log(NULL, AV_LOG_ERROR, "alloc audio codec context failed!\n");
+                goto fail;
+            }
+            if ((ret = avcodec_parameters_to_context(codecCtx, in_stream->codecpar)) < 0) {
+                av_log(NULL, AV_LOG_ERROR, "audio copy parameters failed!\n");
+                avcodec_free_context(&codecCtx);
+                goto fail;
+            }
+            if ((ret = avcodec_open2(codecCtx, codec, NULL)) < 0) {
+                av_log(NULL, AV_LOG_ERROR, "open audio codec fialed\n");
+                avcodec_free_context(&codecCtx);
+                goto fail;
+            }
+            out_stream->codecpar->frame_size = codecCtx->frame_size;
+            avcodec_free_context(&codecCtx);
+        }
+    }
+    
+    if (!(outFmtCtx -> oformat -> flags & AVFMT_NOFILE)) {
+        if(avio_open(&outFmtCtx -> pb, [cutOutFilePath UTF8String], AVIO_FLAG_WRITE) < 0) {
+            av_log(NULL, AV_LOG_ERROR, "could not open output file!\n");
+            goto fail;
+        }
+    }
+    
+    if(avformat_write_header(outFmtCtx, NULL) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Write output file header occured error \n");
+        goto fail;
+    }
+    
+    int64_t start_time = start * AV_TIME_BASE;
+    int64_t end_time = end * AV_TIME_BASE;
+    
+    ret = av_seek_frame(inFmtCtx, -1, start_time, AVSEEK_FLAG_BACKWARD); // | AVSEEK_FLAG_ANY
+    if ( ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "seek time frame failed: %s \n",av_err2str(ret));
+        goto fail;
+    }
+    
+    AVPacket *packet = av_packet_alloc();
+    int64_t start_video_pts = AV_NOPTS_VALUE;
+    int64_t start_audio_pts = AV_NOPTS_VALUE;
+    
+    while (av_read_frame(inFmtCtx, packet) >= 0) {
+        
+        AVStream *in_stream = inFmtCtx -> streams[packet -> stream_index];
+        AVStream *out_stream = outFmtCtx -> streams[packet -> stream_index];
+        
+        int64_t packet_time = av_rescale_q(packet -> pts, in_stream->time_base, AV_TIME_BASE_Q);
+
+        //低于这个时间的丢弃
+        if (packet_time < start_time) {
+            av_packet_unref(packet);
+            continue;
+        }
+        //高于这个时间的时候结束
+        if (packet_time > end_time) {
+            av_packet_unref(packet);
+            break;
+        }
+        
+        if(in_stream -> codecpar -> codec_type == AVMEDIA_TYPE_VIDEO) {
+            
+            if(start_video_pts == AV_NOPTS_VALUE) {
+                start_video_pts = packet -> pts;
+            }
+            packet -> pts = av_rescale_q_rnd(packet -> pts - start_video_pts, in_stream -> time_base, out_stream -> time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+            packet -> dts = av_rescale_q_rnd(packet -> dts - start_video_pts, in_stream -> time_base, out_stream -> time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+            packet -> duration = av_rescale_q(packet -> duration, in_stream -> time_base, out_stream -> time_base);
+            
+        }else if (in_stream -> codecpar -> codec_type == AVMEDIA_TYPE_AUDIO) {
+            
+            if(start_audio_pts == AV_NOPTS_VALUE) {
+                start_audio_pts = packet -> pts;
+            }
+            packet -> pts = av_rescale_q_rnd(packet -> pts - start_audio_pts, in_stream -> time_base, out_stream -> time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+            packet -> dts = av_rescale_q_rnd(packet -> dts - start_audio_pts, in_stream -> time_base, out_stream -> time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+            packet -> duration = av_rescale_q(packet -> duration, in_stream -> time_base, out_stream -> time_base);
+            
+        }else {
+            continue;
+        }
+        packet -> pos = -1;
+
+        // 写入数据包
+        if (av_interleaved_write_frame(outFmtCtx, packet) < 0) {
+            av_log(NULL, AV_LOG_ERROR, "Error muxing packet \n");
+            goto fail;
+        }
+
+        av_packet_unref(packet);
+    }
+    
+    av_write_trailer(outFmtCtx);
+    
+    if (inFmtCtx) {
+        avformat_close_input(&inFmtCtx);
+        avformat_free_context(inFmtCtx);
+    }
+    if (outFmtCtx) {
+        avformat_close_input(&outFmtCtx);
+        avformat_free_context(outFmtCtx);
+    }
+    !complete?:complete(YES, cutOutFilePath);
+    return;
+    
+fail:
+    if (inFmtCtx) {
+        avformat_close_input(&inFmtCtx);
+        avformat_free_context(inFmtCtx);
+    }
+    if (outFmtCtx) {
+        avformat_close_input(&outFmtCtx);
+        avformat_free_context(outFmtCtx);
+    }
+    !complete?:complete(NO, @"");
+    return;
+}
+
 @end
