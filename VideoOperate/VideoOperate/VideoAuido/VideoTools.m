@@ -52,56 +52,41 @@
 
 @implementation VideoTools
 
-
-+ (UIImage *)imageFromFrame:(AVFrame *)frame {
++ (void)removeAllOutFileWithName:(NSString *)name {
     
-    if (!frame)
-        return nil;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
     
-    int width = frame -> width;
-    int height = frame -> height;
+    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *directiorPath = [documentPath stringByAppendingPathComponent:name];
     
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    int bytesPreRow = frame->linesize[0];
-    int dataSize = bytesPreRow * height;
-    
-    uint8_t *data = (uint8_t *)malloc(dataSize);//frame -> data[0];
-    if (!data) {
-        return nil;
+    NSArray *files = [fileManager contentsOfDirectoryAtPath:directiorPath error:NULL];
+    for(NSString *filePath in files) {
+        NSString *fullFilePath = [NSString stringWithFormat:@"%@/%@",directiorPath,filePath];
+        [fileManager removeItemAtPath:fullFilePath error:NULL];
     }
-    
-    memcpy(data, frame -> data[0], dataSize);
-    
-    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, data, bytesPreRow * height, NULL);
-    if (!provider) {
-        CGColorSpaceRelease(colorSpace);
-        return nil;
-    }
-    
-    CGImageRef cgImage = CGImageCreate(width,
-                                       height,
-                                       8,
-                                       4*8,
-                                       bytesPreRow,
-                                       colorSpace,
-                                       kCGBitmapByteOrderDefault|kCGImageAlphaNoneSkipLast,
-                                       provider,
-                                       NULL,
-                                       true,
-                                       kCGRenderingIntentDefault);
-    CGDataProviderRelease(provider);
-    CGColorSpaceRelease(colorSpace);
-    
-    if (!cgImage) {
-        return nil;
-    }
-    
-    UIImage *image = [UIImage imageWithCGImage:cgImage];
-    CGImageRelease(cgImage);
-    
-    return image;
 }
+
++ (NSString *)outFilePathWithName:(NSString *)name {
+    
+    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *directiorPath = [documentPath stringByAppendingPathComponent:name];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL createStatus = [fileManager createDirectoryAtPath:directiorPath withIntermediateDirectories:YES attributes:NULL error:NULL];
+    if (!createStatus) {
+        return @"";
+    }
+    
+    
+    NSDate *date = [NSDate date];
+    NSString *outFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.mp4",date.timeIntervalSince1970]];
+    
+    return outFilePath;
+}
+
+@end
+
+@implementation VideoTools(Base)
 
 + (AVFormatContext *)openInputFormatContextWithFilePath:(NSString *)path {
     
@@ -205,6 +190,61 @@
     int64_t totalFrameCount = (int64_t)(videoDurationSeconds * fps);
     return totalFrameCount;
 }
+
+@end
+
+@implementation VideoTools(Fetch)
+
++ (UIImage *)imageFromFrame:(AVFrame *)frame {
+    
+    if (!frame)
+        return nil;
+    
+    int width = frame -> width;
+    int height = frame -> height;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    int bytesPreRow = frame->linesize[0];
+    int dataSize = bytesPreRow * height;
+    
+    uint8_t *data = (uint8_t *)malloc(dataSize);//frame -> data[0];
+    if (!data) {
+        return nil;
+    }
+    
+    memcpy(data, frame -> data[0], dataSize);
+    
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, data, bytesPreRow * height, NULL);
+    if (!provider) {
+        CGColorSpaceRelease(colorSpace);
+        return nil;
+    }
+    
+    CGImageRef cgImage = CGImageCreate(width,
+                                       height,
+                                       8,
+                                       4*8,
+                                       bytesPreRow,
+                                       colorSpace,
+                                       kCGBitmapByteOrderDefault|kCGImageAlphaNoneSkipLast,
+                                       provider,
+                                       NULL,
+                                       true,
+                                       kCGRenderingIntentDefault);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    
+    if (!cgImage) {
+        return nil;
+    }
+    
+    UIImage *image = [UIImage imageWithCGImage:cgImage];
+    CGImageRelease(cgImage);
+    
+    return image;
+}
+
 
 + (NSArray <DecodeFrame *> *)decodeFramesWithVideoFilePath:(NSString *)path count:(int64_t)count{
     
@@ -537,42 +577,50 @@
     return [imagesArray copy];
 }
 
-+ (void)removeAllOutFile {
+@end
+
+@implementation VideoTools(Cut)
+
++ (void)removeAllCutOutFile {
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+    [self removeAllOutFileWithName:@"Cut"];
     
-    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
-    
-    NSArray *files = [fileManager contentsOfDirectoryAtPath:directiorPath error:NULL];
-    for(NSString *filePath in files) {
-        NSString *fullFilePath = [NSString stringWithFormat:@"%@/%@",directiorPath,filePath];
-        [fileManager removeItemAtPath:fullFilePath error:NULL];
-    }
+//    NSFileManager *fileManager = [NSFileManager defaultManager];
+//
+//    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+//    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
+//
+//    NSArray *files = [fileManager contentsOfDirectoryAtPath:directiorPath error:NULL];
+//    for(NSString *filePath in files) {
+//        NSString *fullFilePath = [NSString stringWithFormat:@"%@/%@",directiorPath,filePath];
+//        [fileManager removeItemAtPath:fullFilePath error:NULL];
+//    }
 }
 
 + (NSString *)cutOutFilePtah {
     
-    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
+    return [self outFilePathWithName:@"Cut"];
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL createStatus = [fileManager createDirectoryAtPath:directiorPath withIntermediateDirectories:YES attributes:NULL error:NULL];
-    if (!createStatus) {
-        NSLog(@"创建Cut的文件夹失败");
-        return @"";
-    }
-    
-    
-    NSDate *date = [NSDate date];
-    NSString *cutOutFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.mp4",date.timeIntervalSince1970]];
-    
-    return cutOutFilePath;
+//    NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+//    NSString *directiorPath = [documentPath stringByAppendingPathComponent:@"Cut"];
+//
+//    NSFileManager *fileManager = [NSFileManager defaultManager];
+//    BOOL createStatus = [fileManager createDirectoryAtPath:directiorPath withIntermediateDirectories:YES attributes:NULL error:NULL];
+//    if (!createStatus) {
+//        NSLog(@"创建Cut的文件夹失败");
+//        return @"";
+//    }
+//
+//
+//    NSDate *date = [NSDate date];
+//    NSString *cutOutFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.mp4",date.timeIntervalSince1970]];
+//
+//    return cutOutFilePath;
 }
 
 + (void)cutVideoWithFilePath:(NSString *)path start:(int)start end:(int)end complete:(void(^)(BOOL success, NSString *outFilePath))complete {
     
-    [self removeAllOutFile];
+    [self removeAllCutOutFile];
     
     NSString *cutOutFilePath = [self cutOutFilePtah];
     AVFormatContext *outFmtCtx = NULL;
@@ -736,3 +784,44 @@ fail:
 }
 
 @end
+
+@implementation VideoTools(Merge)
+
++ (void)removeAllMergeOutFile {
+    
+    [self removeAllOutFileWithName:@"Merge"];
+}
+
++ (NSString *)mergeOutFilePtah {
+    
+    return [self outFilePathWithName:@"Merge"];
+}
+
++ (void)mergeAudioWithVideoFilePath:(NSString *)path audioFilePath:(NSString *)audioPath complete:(void(^)(BOOL success, NSString *outFilePath))complete {
+    
+    const char *mergeOutFilePath = [[self mergeOutFilePtah] UTF8String];
+    
+    AVFormatContext *inVFmtCtx = [self openInputFormatContextWithFilePath:path];
+    if (!inVFmtCtx || inVFmtCtx == NULL) {
+        return;
+    }
+    
+    AVFormatContext *inAFmtCtx = [self openInputFormatContextWithFilePath:audioPath];
+    if (!inAFmtCtx || inAFmtCtx == NULL) {
+        return;
+    }
+    
+fail:
+    if (inVFmtCtx) {
+        avformat_close_input(&inVFmtCtx);
+        avformat_free_context(inVFmtCtx);
+    }
+    if (inAFmtCtx) {
+        avformat_close_input(&inAFmtCtx);
+        avformat_free_context(inAFmtCtx);
+    }
+    return;
+}
+
+@end
+

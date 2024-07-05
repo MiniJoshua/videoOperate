@@ -29,7 +29,9 @@ typedef NS_ENUM(NSUInteger, EnumVideoImageQuality) {
 
 @interface VideoTools : NSObject
 
-+ (UIImage *)imageFromFrame:(AVFrame *)frame;
+@end
+
+@interface VideoTools(Base)
 
 //获取一个音视频文件的输入的上下文
 + (AVFormatContext *)openInputFormatContextWithFilePath:(NSString *)path;
@@ -42,12 +44,29 @@ typedef NS_ENUM(NSUInteger, EnumVideoImageQuality) {
 + (AVCodecContext *)openDecodeWithFormatContext:(AVFormatContext *)formatContext streamIndex:(int)index;
 //获取总的视频帧数
 + (int64_t)totalVideoFrameCountWithFormatContext:(AVFormatContext *)formatContext streamIndex:(int)index;
-//获取多少帧解码后的数据 用于获取视频画面 取帧方式是每隔 总帧数/count 的间隔 
+
+@end
+
+@interface VideoTools(Fetch)
+
++ (UIImage *)imageFromFrame:(AVFrame *)frame;
+//获取多少帧解码后的数据 用于获取视频画面 取帧方式是每隔 总帧数/count 的间隔
 + (NSArray <DecodeFrame *> *)decodeFramesWithVideoFilePath:(NSString *)path count:(int64_t)count;
 //直接获取视频的图片 每 总时间/count 的间隔取一张图片
 + (NSArray <UIImage *> *)imagesWithVideoFilePath:(NSString *)path count:(int64_t)count quality:(EnumVideoImageQuality)quality;
+
+@end
+
+@interface VideoTools(Cut)
+
 //裁剪音视频
 + (void)cutVideoWithFilePath:(NSString *)path start:(int)start end:(int)end complete:(void(^)(BOOL success, NSString *outFilePath))complete;
+
+@end
+
+@interface VideoTools(Merge)
+
++ (void)mergeAudioWithVideoFilePath:(NSString *)path audioFilePath:(NSString *)audioPath complete:(void(^)(BOOL success, NSString *outFilePath))complete;
 
 @end
 
