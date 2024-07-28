@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainView: View {
     // TODO: 多音频混声 提取视频 提取音频 图片合成视频 添加水印 ...
-    @State private var listContents: Array = ["音视频合并", "视频浏览图", "视频裁剪"]
+    @State private var listContents: Array = ["音视频合并", "视频浏览图", "视频裁剪", "音频混合"]
     @StateObject var localVideoLibrary: LocalVideoLibrary = .init()
 
     var body: some View {
@@ -24,6 +24,8 @@ struct MainView: View {
                                 BrowseVideoView()
                             } else if index == 2 {
                                 CutVideoView()
+                            } else if index == 3 {
+                                MixAudioView()
                             }
 
                         } label: {

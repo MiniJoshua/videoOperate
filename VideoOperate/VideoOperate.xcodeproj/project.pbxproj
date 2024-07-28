@@ -56,6 +56,10 @@
 		01D787B02C34DAD300425154 /* CutLocalVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787AF2C34DAD300425154 /* CutLocalVideoView.swift */; };
 		01D787B22C34DAE800425154 /* CutPhotoVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787B12C34DAE800425154 /* CutPhotoVideoView.swift */; };
 		01D787B42C34DC2100425154 /* CutVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D787B32C34DC2100425154 /* CutVideoView.swift */; };
+		01D787B62C3D6EE800425154 /* 1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 01D787B52C3D6EE800425154 /* 1.mp4 */; };
+		01F7F4A82C5152140015FEDC /* MixAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4A72C5152140015FEDC /* MixAudioView.swift */; };
+		01F7F4AA2C51523B0015FEDC /* MixAudioLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */; };
+		01F7F4AC2C5152510015FEDC /* MixAudioPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -249,6 +253,10 @@
 		01D787AF2C34DAD300425154 /* CutLocalVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutLocalVideoView.swift; sourceTree = "<group>"; };
 		01D787B12C34DAE800425154 /* CutPhotoVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutPhotoVideoView.swift; sourceTree = "<group>"; };
 		01D787B32C34DC2100425154 /* CutVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutVideoView.swift; sourceTree = "<group>"; };
+		01D787B52C3D6EE800425154 /* 1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.mp4; sourceTree = "<group>"; };
+		01F7F4A72C5152140015FEDC /* MixAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioView.swift; sourceTree = "<group>"; };
+		01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioLocalView.swift; sourceTree = "<group>"; };
+		01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioPhotoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -286,6 +294,7 @@
 		011B2CAD2C17E51D007EB450 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				01D787B52C3D6EE800425154 /* 1.mp4 */,
 				011B2CB02C17E57F007EB450 /* 99.mp4 */,
 				011B2CAE2C17E57E007EB450 /* 500.mp4 */,
 				011B2CAF2C17E57E007EB450 /* 1999.mp4 */,
@@ -564,6 +573,7 @@
 				01D787AE2C34DA8900425154 /* CutVideo */,
 				01D7879E2C2BA13500425154 /* VideoPhotos */,
 				01D7879D2C27B7BE00425154 /* MergeVideo */,
+				01F7F4A62C5151410015FEDC /* MixAudio */,
 				011B2CC72C19FCFB007EB450 /* lib */,
 				011B2CC62C19F896007EB450 /* VideoAuido */,
 				011B2CAD2C17E51D007EB450 /* Resources */,
@@ -631,6 +641,16 @@
 			path = CutVideo;
 			sourceTree = "<group>";
 		};
+		01F7F4A62C5151410015FEDC /* MixAudio */ = {
+			isa = PBXGroup;
+			children = (
+				01F7F4A72C5152140015FEDC /* MixAudioView.swift */,
+				01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */,
+				01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */,
+			);
+			path = MixAudio;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -693,6 +713,7 @@
 				011B2CB32C17E57F007EB450 /* 99.mp4 in Resources */,
 				011B2CB12C17E57F007EB450 /* 500.mp4 in Resources */,
 				0140F9572C16BE60009C2105 /* Preview Assets.xcassets in Resources */,
+				01D787B62C3D6EE800425154 /* 1.mp4 in Resources */,
 				0140F9542C16BE60009C2105 /* Assets.xcassets in Resources */,
 				011B2CB22C17E57F007EB450 /* 1999.mp4 in Resources */,
 			);
@@ -705,7 +726,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01F7F4A82C5152140015FEDC /* MixAudioView.swift in Sources */,
 				011B2CB52C17EC25007EB450 /* PhotoVideoLibrary.swift in Sources */,
+				01F7F4AA2C51523B0015FEDC /* MixAudioLocalView.swift in Sources */,
 				01D787AA2C2E475700425154 /* BrowsePhotosView.swift in Sources */,
 				01D787A62C2BBF8B00425154 /* PreviewPhotosView.swift in Sources */,
 				011B2CBB2C185EA6007EB450 /* MainView.swift in Sources */,
@@ -728,6 +751,7 @@
 				01D7879C2C273D5400425154 /* MergeLocalVideoView.swift in Sources */,
 				011B2CBD2C18A06A007EB450 /* SaveVideoView.swift in Sources */,
 				011B2CC12C19755D007EB450 /* VideoPlayerView.swift in Sources */,
+				01F7F4AC2C5152510015FEDC /* MixAudioPhotoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

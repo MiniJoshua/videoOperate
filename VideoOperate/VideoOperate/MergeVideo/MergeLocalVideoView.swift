@@ -133,14 +133,27 @@ struct MergeLocalVideoView: View {
             isLoading = true
         }
         
+//        DispatchQueue.global().async {
+//            VideoTools.mergeAudio(withVideoFilePath: currentVideo?.filePath ?? "", audioFilePath: currentAudio?.filePath ?? "") { success, filePath in
+//                if success {
+//                    DispatchQueue.main.async {
+//                        print("视频合并完成")
+//                        isLoading = false
+//                        mergeFilePath = filePath
+//                        navigationActive = true
+//                    }
+//                }
+//            }
+//        }
+        
         let objCInstance = MergeAVideo()
         objCInstance.mergeFilePath(currentVideo?.filePath ?? "", audioFilePath: currentAudio?.filePath ?? "")
-        
+
         DispatchQueue.global().async {
-            
+
             objCInstance.megreVideoNeedDecoder(false) { filePath, status in
                 if status {
-                    
+
                     DispatchQueue.main.async {
                         print("视频合并完成")
                         isLoading = false

@@ -779,7 +779,6 @@
     av_opt_set_int(_audioFmtSwrCtx, "in_sample_rate", _audioDecoderCtx->sample_rate, 0);
     av_opt_set_sample_fmt(_audioFmtSwrCtx, "in_sample_fmt", _audioDecoderCtx->sample_fmt, 0);
     
-//    av_opt_set_int(audioSwrCtx, "out_channel_layout", audioEncoderCtx->channel_layout, 0);
     av_opt_set_chlayout(_audioFmtSwrCtx, "out_chlayout", &_audioEncoderCtx->ch_layout, 0);
     av_opt_set_int(_audioFmtSwrCtx, "out_sample_rate", _audioEncoderCtx->sample_rate, 0);
     av_opt_set_sample_fmt(_audioFmtSwrCtx, "out_sample_fmt", _audioEncoderCtx->sample_fmt, 0);

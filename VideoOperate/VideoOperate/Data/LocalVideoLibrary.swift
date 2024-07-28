@@ -58,6 +58,15 @@ class LocalVideoLibrary: ObservableObject {
             let videoInfo = LocalVideoInfo(thumbnail: image, duration: duration3, filePath:filePath3)
             localVideos.append(videoInfo)
         }
+        
+        let filePath4 = Bundle.main.path(forResource: "1", ofType: "mp4")!
+        let images4 = VideoTools.images(withVideoFilePath: filePath4, count: 2, quality: EnumVideoImageQuality.medium)
+        let duration4 = VideoTools.duration(withFilePath: filePath4)
+        if images4.count == 2 {
+            let image = images4[1]
+            let videoInfo = LocalVideoInfo(thumbnail: image, duration: duration4, filePath:filePath4)
+            localVideos.append(videoInfo)
+        }
     }
 }
 

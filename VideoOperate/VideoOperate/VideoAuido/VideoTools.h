@@ -59,14 +59,26 @@ typedef NS_ENUM(NSUInteger, EnumVideoImageQuality) {
 
 @interface VideoTools(Cut)
 
-//裁剪音视频
+/// 裁剪音视频
+/// - Parameters:
+///   - path: 音/视频文件的路径
+///   - start: 开始的时间点 单位秒
+///   - end: 结束的时间点 单位秒
+///   - complete: 裁剪完成的回调
 + (void)cutVideoWithFilePath:(NSString *)path start:(int)start end:(int)end complete:(void(^)(BOOL success, NSString *outFilePath))complete;
 
 @end
 
 @interface VideoTools(Merge)
 
-+ (void)mergeAudioWithVideoFilePath:(NSString *)path audioFilePath:(NSString *)audioPath complete:(void(^)(BOOL success, NSString *outFilePath))complete;
+/// 将音频混合到视频的音频中去
+/// - Parameters:
+///   - path: 视频文件的路径
+///   - audioPath: 需要混入的音频文件 视频文件会提取里面的音频数据
+///   - volume1: 视频中的声音音量
+///   - volum2: 音频中的声音音量
+///   - complete: success 状态  outFilePath 混合后输出的文件路径
++ (void)mergeAudioWithVideoFilePath:(NSString *)path audioFilePath:(NSString *)audioPath volume1:(CGFloat)volume1 volume2:(CGFloat)volume2 complete:(void(^)(BOOL success, NSString *outFilePath))complete;
 
 @end
 
