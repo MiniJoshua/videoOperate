@@ -82,4 +82,15 @@ typedef NS_ENUM(NSUInteger, EnumVideoImageQuality) {
 
 @end
 
+@interface VideoTools(Extract)
+
+/// 提取视频文件中的音频/视频流  视频使用h264重新编码  视频使用aac重新编码
+/// - Parameters:
+///   - path: 文件的路径
+///   - status:  YES 提取视频  NO 提取音频
+///   - complete: 提取成功的回调
++ (void)extractFilePath:(NSString *)path videoStatus:(BOOL)status complete:(void(^)(BOOL success, NSString *extractFilePath))complete;
+
+@end
+
 NS_ASSUME_NONNULL_END

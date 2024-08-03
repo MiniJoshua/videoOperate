@@ -73,6 +73,11 @@
 
 + (NSString *)outFilePathWithName:(NSString *)name {
     
+    return [self outFilePathWithName:name type:@"mp4"];
+}
+
++ (NSString *)outFilePathWithName:(NSString *)name type:(NSString *)type {
+    
     NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
     NSString *directiorPath = [documentPath stringByAppendingPathComponent:name];
     
@@ -82,9 +87,8 @@
         return @"";
     }
     
-    
     NSDate *date = [NSDate date];
-    NSString *outFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.mp4",date.timeIntervalSince1970]];
+    NSString *outFilePath = [directiorPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%f.%@",date.timeIntervalSince1970, type]];
     
     return outFilePath;
 }
@@ -1300,6 +1304,426 @@ static int init_filter_graph(AVFilterGraph *graph, AVFilterContext **src0, AVFil
     *sink = buffersink_ctx;
 
     return avfilter_graph_config(graph, NULL);
+}
+
+@end
+
+@implementation VideoTools (Extract)
+
++ (void)removeAllExtractOutFile {
+    
+    [self removeAllOutFileWithName:@"Extract"];
+}
+
++ (NSString *)extractOutFilePtah {
+    
+    return [self outFilePathWithName:@"Extract"];
+}
+
++ (NSString *)extractOutVideoFilePath {
+    
+    return [self outFilePathWithName:@"Extract" type:@"mp4"];
+}
+
+//因为mp3编码器未添加到ffmpeg库中 使用aac编码器 编码成mp4的音频文件
++ (NSString *)extractOutAudioFilePath {
+    
+    return [self outFilePathWithName:@"Extract" type:@"mp4"];
+}
+
++ (void)extractFilePath:(NSString *)path videoStatus:(BOOL)status complete:(void(^)(BOOL success, NSString *extractFilePath))complete {
+    
+    
+    NSString *extractOutFilePath = [self extractOutVideoFilePath];
+    if(!status) {
+        extractOutFilePath = [self extractOutAudioFilePath];
+    }
+    
+    const char *extractOutFile = [extractOutFilePath UTF8String];
+    
+    int videoIndex = -1;
+    int audioIndex = -1;
+    
+    AVFormatContext *outFmtCtx = NULL;
+    AVStream *videoOutStream = NULL;
+    AVStream *audioOutStream = NULL;
+    
+    AVFormatContext *inFmtCtx = [self openInputFormatContextWithFilePath:path];
+    if(!inFmtCtx || inFmtCtx == NULL) {
+        goto fail;
+    }
+    
+    videoIndex = [self streamIndexWithFormatContext:inFmtCtx mediaType:AVMEDIA_TYPE_VIDEO];
+    if (videoIndex < 0) {
+        goto fail;
+    }
+    
+    audioIndex = av_find_best_stream(inFmtCtx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+    if (audioIndex < 0) {
+        av_log(NULL, AV_LOG_ERROR, "find video stream index failed:%s\n", av_err2str(audioIndex));
+        goto fail;;
+    }
+    
+    
+    AVCodecContext *videoDecoderCtx = [self openDecodeWithFormatContext:inFmtCtx streamIndex:videoIndex];
+    if (videoDecoderCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "video file video decoder alloc failed!\n");
+        goto fail;
+    }
+    
+    //视频编码器
+    const AVCodec *videoEncoder = avcodec_find_encoder_by_name("h264_videotoolbox");
+    if (videoEncoder == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "can not find h264_videotoolbox encoder \n");
+        goto fail;
+    }
+    
+    AVCodecContext *videoEncoderCtx = avcodec_alloc_context3(videoEncoder);
+    if (videoEncoderCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, " alloc video encoder failed \n");
+        goto fail;
+    }
+    
+    AVRational time_base = inFmtCtx->streams[videoIndex]->time_base;
+    AVRational framerate = av_guess_frame_rate(inFmtCtx, inFmtCtx->streams[videoIndex], NULL);
+    
+    // 验证时间基和帧率是否一致
+    if (time_base.num * framerate.den != time_base.den * framerate.num) {
+        // 调整时间基，使其与帧率一致
+        time_base.num = framerate.den;
+        time_base.den = framerate.num;
+    }
+    
+    enum AVPixelFormat pixFmt = AV_PIX_FMT_YUV420P;
+    videoEncoderCtx -> codec_type = AVMEDIA_TYPE_VIDEO;
+    videoEncoderCtx -> pix_fmt = pixFmt;
+    videoEncoderCtx -> width = videoDecoderCtx -> width;
+    videoEncoderCtx -> height = videoDecoderCtx -> height;
+    videoEncoderCtx -> framerate = framerate;
+    videoEncoderCtx -> time_base = time_base;
+    videoEncoderCtx -> max_b_frames = 0;
+    videoEncoderCtx -> gop_size = 10;
+    videoEncoderCtx -> color_range = AVCOL_RANGE_MPEG;
+    videoEncoderCtx -> sample_aspect_ratio = videoDecoderCtx -> sample_aspect_ratio;
+    
+    int ret = avcodec_open2(videoEncoderCtx, videoEncoder, NULL);
+    if(ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "open video encoder failed:%s\n", av_err2str(ret));
+        goto fail;
+    }
+    
+    
+    //音频解码器
+    AVCodecContext *audioDecoderCtx = avcodec_alloc_context3(NULL);
+    if (audioDecoderCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "audio decoder alloc failed!\n");
+        goto fail;
+    }
+    
+    ret = avcodec_parameters_to_context(audioDecoderCtx, inFmtCtx->streams[audioIndex]->codecpar);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "copy decoder parameter to context failed: %s \n", av_err2str(ret));
+        goto fail;
+    }
+    
+    const AVCodec *audioDecoder = avcodec_find_decoder(audioDecoderCtx -> codec_id);
+    if (audioDecoder == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "can not find audio decoder failed! \n");
+        goto fail;
+    }
+    
+    ret = avcodec_open2(audioDecoderCtx, audioDecoder, NULL);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "open audio decoder failed:%s \n", av_err2str(ret));
+        goto fail;
+    }
+    
+    //音频编码器
+    const AVCodec *audioEncoder = avcodec_find_encoder(AV_CODEC_ID_AAC);//AV_CODEC_ID_MP3 AV_CODEC_ID_AAC
+    if (audioEncoder == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "can not find aac encoder \n");
+        goto fail;
+    }
+    AVCodecContext *audioEncoderCtx = avcodec_alloc_context3(audioEncoder);
+    if (audioEncoderCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "alloc audio encoder failed\n");
+        goto fail;
+    }
+    
+    
+//    output_codec_context->channels = input_codec_context->channels;
+//       output_codec_context->channel_layout = av_get_default_channel_layout(output_codec_context->channels);
+//       output_codec_context->sample_rate = input_codec_context->sample_rate;
+//       output_codec_context->sample_fmt = output_codec->sample_fmts[0];
+//       output_codec_context->bit_rate = 128000;
+    
+    audioEncoderCtx -> sample_fmt = AV_SAMPLE_FMT_FLTP;
+    av_channel_layout_copy(&audioEncoderCtx->ch_layout, &(AVChannelLayout)AV_CHANNEL_LAYOUT_MONO);
+    audioEncoderCtx->sample_rate = 44100;
+    audioEncoderCtx->bit_rate = 128000;
+    audioEncoderCtx -> frame_size = 1024;
+    
+    ret = avcodec_open2(audioEncoderCtx, audioEncoder, NULL);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "could not open aac audio codec \n");
+        goto fail;
+    }
+    
+    //video sws
+    AVFrame *videoConvertFrame = av_frame_alloc();
+    videoConvertFrame -> format = pixFmt;
+    videoConvertFrame -> width = videoDecoderCtx -> width;
+    videoConvertFrame -> height = videoDecoderCtx -> height;
+    int dataSize = av_image_get_buffer_size(videoDecoderCtx -> pix_fmt, videoDecoderCtx -> width, videoDecoderCtx -> height, 1);
+    if (dataSize < 0) {
+        av_log(NULL, AV_LOG_ERROR, "get buffer size failed!\n");
+        goto fail;
+    }
+    
+    uint8_t *buffer = av_malloc(dataSize);
+    ret = av_image_fill_arrays(videoConvertFrame -> data,
+                               videoConvertFrame -> linesize,
+                               buffer,
+                               pixFmt,
+                               videoDecoderCtx -> width,
+                               videoDecoderCtx -> height,
+                               1);
+    
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "fill arrays failed:%s \n", av_err2str(ret));
+        goto fail;
+    }
+    
+    struct SwsContext *videoFmtSwsCtx = sws_getContext(videoDecoderCtx -> width,
+                                                       videoDecoderCtx -> height,
+                                                       videoDecoderCtx -> pix_fmt,
+                                                       videoDecoderCtx -> width,
+                                                       videoDecoderCtx -> height,
+                                                       pixFmt,
+                                                       0,
+                                                       NULL,
+                                                       NULL,
+                                                       NULL);
+    
+    
+    //audio sws
+    SwrContext *audioFmtSwrCtx = swr_alloc();
+    
+    av_opt_set_chlayout(audioFmtSwrCtx, "in_chlayout", &audioDecoderCtx->ch_layout, 0);
+    av_opt_set_int(audioFmtSwrCtx, "in_sample_rate", audioDecoderCtx->sample_rate, 0);
+    av_opt_set_sample_fmt(audioFmtSwrCtx, "in_sample_fmt", audioDecoderCtx->sample_fmt, 0);
+    
+    av_opt_set_chlayout(audioFmtSwrCtx, "out_chlayout", &audioEncoderCtx->ch_layout, 0);
+    av_opt_set_int(audioFmtSwrCtx, "out_sample_rate", audioEncoderCtx->sample_rate, 0);
+    av_opt_set_sample_fmt(audioFmtSwrCtx, "out_sample_fmt", audioEncoderCtx->sample_fmt, 0);
+    
+    ret = swr_init(audioFmtSwrCtx);
+    if(ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "init audio swr failed:%s \n",av_err2str(ret));
+        goto fail;
+    }
+    
+    AVFrame *audioConvertFrame = av_frame_alloc();
+    audioConvertFrame -> nb_samples = 1024;
+    audioConvertFrame -> format = audioEncoderCtx -> sample_fmt;
+    audioConvertFrame -> ch_layout = audioEncoderCtx -> ch_layout;
+    audioConvertFrame -> sample_rate = 44100;
+    
+    ret = av_frame_get_buffer(audioConvertFrame, 0);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "could not alloc audio data buffers! \n");
+        goto fail;
+    }
+    
+    ret = avformat_alloc_output_context2(&outFmtCtx, NULL, NULL, extractOutFile);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "output foramt context alloc failed:%s \n", av_err2str(ret));
+        goto fail;
+    }
+    
+    if (status) {
+        //视频输出流
+        videoOutStream = avformat_new_stream(outFmtCtx, NULL);
+        if (videoOutStream == NULL) {
+            av_log(NULL, AV_LOG_ERROR, "alloc video stream failed!\n");
+            goto  fail;
+        }
+        
+        avcodec_parameters_from_context(videoOutStream -> codecpar, videoEncoderCtx);
+        videoOutStream -> time_base = videoEncoderCtx -> time_base;
+    }else {
+        
+        //音频输出流
+        audioOutStream = avformat_new_stream(outFmtCtx, NULL);
+        if (audioOutStream == NULL) {
+            
+            av_log(NULL, AV_LOG_ERROR, "alloc audio stream failed! \n");
+            goto fail;
+        }
+        
+        avcodec_parameters_from_context(audioOutStream -> codecpar, audioEncoderCtx);
+    }
+    
+    if(!(outFmtCtx -> oformat -> flags & AVFMT_NOFILE)) {
+        
+        if(avio_open(&outFmtCtx -> pb, extractOutFile, AVIO_FLAG_WRITE) < 0) {
+            av_log(NULL, AV_LOG_ERROR, "could not open output file!\n");
+            goto fail;
+        }
+    }
+    
+    if(avformat_write_header(outFmtCtx, NULL) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "write output file header occured error \n");
+        goto fail;
+    }
+    
+    AVPacket *pkt = av_packet_alloc();
+    AVFrame *decoderFrame = av_frame_alloc();
+    AVPacket *encoderPkt = av_packet_alloc();
+    
+    int video_pts = 0;
+    int audio_pts = 0;
+    
+    while (av_read_frame(inFmtCtx, pkt) >= 0) {
+        
+        if (status) {
+            if(pkt -> stream_index == videoIndex) {
+                //视频帧
+                int sret = avcodec_send_packet(videoDecoderCtx, pkt);
+                if (sret < 0) {
+                    av_log(NULL, AV_LOG_ERROR, "send video frame decoder failed:%s \n", av_err2str(ret));
+                    goto fail;
+                }
+                
+                while (avcodec_receive_frame(videoDecoderCtx, decoderFrame) == 0) {
+                    sws_scale(videoFmtSwsCtx,
+                              (const uint8_t *const *) decoderFrame -> data,
+                              decoderFrame -> linesize,
+                              0,
+                              videoDecoderCtx -> height,
+                              videoConvertFrame -> data,
+                              videoConvertFrame -> linesize);
+                    
+                    videoConvertFrame -> pts = video_pts;
+                    video_pts ++;
+                    
+                    int ret1 = avcodec_send_frame(videoEncoderCtx, videoConvertFrame);
+                    if (ret1 < 0) {
+                        av_log(NULL, AV_LOG_ERROR, "send video frame encoder failed:%s \n", av_err2str(ret1));
+                        goto fail;
+                    }
+                    
+                    while (ret1 >= 0) {
+                        ret1 = avcodec_receive_packet(videoEncoderCtx, encoderPkt);
+                        if (ret1 == AVERROR(EAGAIN) || ret1 == AVERROR_EOF) {
+                            break;
+                        }else if(ret1 < 0) {
+                            av_log(NULL, AV_LOG_ERROR, "encoder video frame failed:%s \n", av_err2str(ret1));
+                            goto fail;
+                        }
+                        
+                        encoderPkt -> stream_index = videoIndex;
+                        
+//                        av_packet_rescale_ts(encoderPkt, videoEncoderCtx->time_base, videoOutStream->time_base);
+                        encoderPkt->pts = av_rescale_q(encoderPkt->pts, videoEncoderCtx->time_base, videoOutStream->time_base);
+                        encoderPkt->dts = av_rescale_q(encoderPkt->dts, videoEncoderCtx->time_base, videoOutStream->time_base);
+                        encoderPkt->duration = av_rescale_q(encoderPkt->duration, videoEncoderCtx->time_base, videoOutStream->time_base);
+
+                        if(av_interleaved_write_frame(outFmtCtx, encoderPkt) < 0) {
+                            av_log(NULL, AV_LOG_ERROR, "write video frame failed! \n");
+                            goto fail;
+                        }
+                        
+                        av_packet_unref(encoderPkt);
+                    }
+                    
+                }
+                
+            }
+        }else {
+            if (pkt -> stream_index == audioIndex) {
+                //音频帧
+                
+                int sret = avcodec_send_packet(audioDecoderCtx, pkt);
+                if (sret < 0) {
+                    av_log(NULL, AV_LOG_ERROR, "send audio frame decoder failed:%s \n", av_err2str(ret));
+                    goto fail;
+                }
+                
+                while (avcodec_receive_frame(audioDecoderCtx, decoderFrame) == 0) {
+                    
+                    int swrRet = swr_convert_frame(audioFmtSwrCtx, audioConvertFrame, decoderFrame);
+                    if (swrRet < 0) {
+                        av_log(NULL, AV_LOG_ERROR, "audio swr convert frame failed:%s \n", av_err2str(swrRet));
+                        goto fail;
+                    }
+                    
+                    audioConvertFrame -> pts = audio_pts;
+                    audio_pts += audioConvertFrame -> nb_samples;
+                    
+                    //开始音频编码
+                    int ret1 = avcodec_send_frame(audioEncoderCtx, audioConvertFrame);
+                    while (ret1 >= 0) {
+                        ret1 = avcodec_receive_packet(audioEncoderCtx, encoderPkt);
+                        if(ret1 == AVERROR(EAGAIN) || ret1 == AVERROR_EOF) {
+                            break;
+                        }else if (ret1 < 0) {
+                            av_log(NULL, AV_LOG_ERROR, "encoder audio frame failed:%s \n", av_err2str(ret1));
+                            goto fail;
+                        }
+                        //写入音频帧
+                        encoderPkt->stream_index = videoIndex;
+                    
+                        NSLog(@"写入音频帧：%d", encoderPkt -> pts);
+                        if (av_interleaved_write_frame(outFmtCtx, encoderPkt) < 0) {
+                            av_log(NULL, AV_LOG_ERROR, "write video frame failed! \n");
+                            goto fail;
+                        }
+                        
+                        av_packet_unref(encoderPkt);
+                    }
+                    
+                }
+                
+            }
+        }
+        
+        av_packet_unref(pkt);
+    }
+    
+    av_write_trailer(outFmtCtx);
+    
+    if (decoderFrame) {
+        av_frame_free(&decoderFrame);
+    }
+    
+    if(inFmtCtx) {
+        avformat_close_input(&inFmtCtx);
+        avformat_free_context(inFmtCtx);
+    }
+    if (outFmtCtx) {
+        avformat_close_input(&outFmtCtx);
+        avformat_free_context(outFmtCtx);
+    }
+    !complete?:complete(YES, extractOutFilePath);
+    return;
+    
+fail:
+    if(inFmtCtx) {
+        avformat_close_input(&inFmtCtx);
+        avformat_free_context(inFmtCtx);
+    }
+    if (outFmtCtx) {
+        avformat_close_input(&outFmtCtx);
+        avformat_free_context(outFmtCtx);
+    }
+    
+    if (decoderFrame) {
+        av_frame_free(&decoderFrame);
+    }
+    
+    !complete?:complete(NO, @"");
+    
 }
 
 @end

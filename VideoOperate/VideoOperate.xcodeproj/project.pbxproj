@@ -60,6 +60,7 @@
 		01F7F4A82C5152140015FEDC /* MixAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4A72C5152140015FEDC /* MixAudioView.swift */; };
 		01F7F4AA2C51523B0015FEDC /* MixAudioLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */; };
 		01F7F4AC2C5152510015FEDC /* MixAudioPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */; };
+		01F7F4AF2C57E8880015FEDC /* ExtractAVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -257,6 +258,7 @@
 		01F7F4A72C5152140015FEDC /* MixAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioView.swift; sourceTree = "<group>"; };
 		01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioLocalView.swift; sourceTree = "<group>"; };
 		01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioPhotoView.swift; sourceTree = "<group>"; };
+		01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractAVideoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -569,6 +571,7 @@
 		0140F94E2C16BE5F009C2105 /* VideoOperate */ = {
 			isa = PBXGroup;
 			children = (
+				01F7F4AD2C57E84D0015FEDC /* ExtractAVideo */,
 				01D787AB2C2ECD1400425154 /* Data */,
 				01D787AE2C34DA8900425154 /* CutVideo */,
 				01D7879E2C2BA13500425154 /* VideoPhotos */,
@@ -649,6 +652,14 @@
 				01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */,
 			);
 			path = MixAudio;
+			sourceTree = "<group>";
+		};
+		01F7F4AD2C57E84D0015FEDC /* ExtractAVideo */ = {
+			isa = PBXGroup;
+			children = (
+				01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */,
+			);
+			path = ExtractAVideo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -738,6 +749,7 @@
 				01D787B42C34DC2100425154 /* CutVideoView.swift in Sources */,
 				01D787A02C2BB54E00425154 /* BrowseVideoView.swift in Sources */,
 				0140F9522C16BE5F009C2105 /* ContentView.swift in Sources */,
+				01F7F4AF2C57E8880015FEDC /* ExtractAVideoView.swift in Sources */,
 				01D787982C247D0E00425154 /* VideoTools.m in Sources */,
 				011B2CC52C19F88F007EB450 /* MergeAVideo.m in Sources */,
 				0140F9502C16BE5F009C2105 /* VideoOperateApp.swift in Sources */,
