@@ -61,6 +61,8 @@
 		01F7F4AA2C51523B0015FEDC /* MixAudioLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */; };
 		01F7F4AC2C5152510015FEDC /* MixAudioPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */; };
 		01F7F4AF2C57E8880015FEDC /* ExtractAVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */; };
+		01F7F4B12C5F11D30015FEDC /* ExtractAVideoLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4B02C5F11D30015FEDC /* ExtractAVideoLocalView.swift */; };
+		01F7F4B32C5F11E60015FEDC /* ExtractAVideoPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F7F4B22C5F11E60015FEDC /* ExtractAVideoPhotoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -259,6 +261,8 @@
 		01F7F4A92C51523B0015FEDC /* MixAudioLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioLocalView.swift; sourceTree = "<group>"; };
 		01F7F4AB2C5152510015FEDC /* MixAudioPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixAudioPhotoView.swift; sourceTree = "<group>"; };
 		01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractAVideoView.swift; sourceTree = "<group>"; };
+		01F7F4B02C5F11D30015FEDC /* ExtractAVideoLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractAVideoLocalView.swift; sourceTree = "<group>"; };
+		01F7F4B22C5F11E60015FEDC /* ExtractAVideoPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractAVideoPhotoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -658,6 +662,8 @@
 			isa = PBXGroup;
 			children = (
 				01F7F4AE2C57E8880015FEDC /* ExtractAVideoView.swift */,
+				01F7F4B02C5F11D30015FEDC /* ExtractAVideoLocalView.swift */,
+				01F7F4B22C5F11E60015FEDC /* ExtractAVideoPhotoView.swift */,
 			);
 			path = ExtractAVideo;
 			sourceTree = "<group>";
@@ -737,6 +743,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01F7F4B32C5F11E60015FEDC /* ExtractAVideoPhotoView.swift in Sources */,
+				01F7F4B12C5F11D30015FEDC /* ExtractAVideoLocalView.swift in Sources */,
 				01F7F4A82C5152140015FEDC /* MixAudioView.swift in Sources */,
 				011B2CB52C17EC25007EB450 /* PhotoVideoLibrary.swift in Sources */,
 				01F7F4AA2C51523B0015FEDC /* MixAudioLocalView.swift in Sources */,

@@ -1674,7 +1674,6 @@ static int init_filter_graph(AVFilterGraph *graph, AVFilterContext **src0, AVFil
                         //写入音频帧
                         encoderPkt->stream_index = videoIndex;
                     
-                        NSLog(@"写入音频帧：%d", encoderPkt -> pts);
                         if (av_interleaved_write_frame(outFmtCtx, encoderPkt) < 0) {
                             av_log(NULL, AV_LOG_ERROR, "write video frame failed! \n");
                             goto fail;

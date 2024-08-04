@@ -15,7 +15,19 @@ import SwiftUI
 
 struct ExtractAVideoView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        TabView {
+            
+            ExtractAVideoLocalView()
+                .tabItem {
+                    Label("本地", systemImage: "plus.viewfinder")
+                }
+            
+            ExtractAVideoPhotoView()
+                .tabItem {
+                    Label("相册", systemImage: "photo")
+                }
+        }
+        .navigationTitle("提取音视频")
     }
 }
 
